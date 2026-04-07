@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hlasy ptáků – kvíz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f0f4f0;
+      color: #1a2a1a;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #4a7c4a;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    #card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    #progress-bar-wrap {
+      background: #e8f0e8;
+      border-radius: 999px;
+      height: 6px;
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      background: #4a7c4a;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    #progress-text {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #7a9a7a;
+    }
+
+    #play-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #play-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: #4a7c4a;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(74,124,74,0.35);
+    }
+    #play-btn:hover { background: #3a6a3a; }
+    #play-btn:active { transform: scale(0.95); }
+    #play-btn.playing { background: #2a8a5a; }
+
+    #play-label {
+      font-size: 0.8rem;
+      color: #7a9a7a;
+    }
+
+    #options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .opt-btn {
+      padding: 0.85rem 0.5rem;
+      border-radius: 0.75rem;
+      border: 2px solid #d8e8d8;
+      background: #f8fbf8;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .opt-btn:hover:not(:disabled) {
+      border-color: #4a7c4a;
+      background: #eef5ee;
+    }
+    .opt-btn:active:not(:disabled) { transform: scale(0.97); }
+    .opt-btn.correct  { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
+    .opt-btn.wrong    { border-color: #c62828; background: #ffebee; color: #b71c1c; }
+    .opt-btn.reveal   { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
+    .opt-btn:disabled { cursor: default; }
+
+    #feedback {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      min-height: 1.4em;
+    }
+    #feedback.correct { color: #2e7d32; }
+    #feedback.wrong   { color: #c62828; }
+
+    #next-btn {
+      padding: 0.85rem;
+      border-radius: 0.75rem;
+      border: none;
+      background: #4a7c4a;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: none;
+    }
+    #next-btn:hover { background: #3a6a3a; }
+
+    #score-board {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #7a9a7a;
+    }
+
+    /* finished screen */
+    #finished {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      text-align: center;
+    }
+    #finished h2 { font-size: 1.5rem; color: #4a7c4a; }
+    #finished p  { color: #5a7a5a; }
+    #restart-btn {
+      padding: 0.85rem 2rem;
+      border-radius: 0.75rem;
+      border: none;
+      background: #4a7c4a;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #restart-btn:hover { background: #3a6a3a; }
+
+    #size-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .size-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 2px solid #4a7c4a;
+      background: transparent;
+      color: #4a7c4a;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .size-btn:hover, .size-btn.active {
+      background: #4a7c4a;
+      color: white;
+    }
+
+    #attribution {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #9aaa9a;
+      text-align: center;
+    }
+    #attribution a { color: #4a7c4a; }
+  </style>
+</head>
+<body>
+  <h1>Hlasy ptáků</h1>
+
+  <div id="size-selector">
+    <button class="size-btn active" data-size="0">Vše</button>
+    <button class="size-btn" data-size="5">5</button>
+    <button class="size-btn" data-size="10">10</button>
+    <button class="size-btn" data-size="20">20</button>
+  </div>
+
+  <div id="card">
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:0%"></div></div>
+    <div id="progress-text">Karta 1 / 38</div>
+
+    <div id="play-area">
+      <button id="play-btn" title="Přehrát hlas">▶</button>
+      <span id="play-label">Přehraj hlas a uhádni ptáka</span>
+    </div>
+
+    <div id="options"></div>
+
+    <div id="feedback"></div>
+    <button id="next-btn">Další →</button>
+    <div id="score-board">Skóre: 0 / 0</div>
+
+    <div id="finished">
+      <h2>🎉 Hotovo!</h2>
+      <p id="final-score"></p>
+      <button id="restart-btn">Hrát znovu</button>
+    </div>
+  </div>
+
+  <div id="attribution">
+    Nahrávky hlasů ptáků: <a href="https://www.lipka.cz" target="_blank" rel="noopener">lipka.cz</a>
+  </div>
+
+  <audio id="audio"></audio>
+
+  <script>
+    const CHOICES = 4;
+
+    const birds = [
+      { name: "žluva hajní",          audio_url: "https://www.lipka.cz/audio/zluvah.mp3" },
+      { name: "žluna zelená",         audio_url: "https://www.lipka.cz/audio/zlunaz.mp3" },
+      { name: "zvonohlík zahradní",   audio_url: "https://www.lipka.cz/audio/zvonohlikz.mp3" },
+      { name: "zvonek zelený",        audio_url: "https://www.lipka.cz/audio/zvonekz.mp3" },
+      { name: "vrabec domácí",        audio_url: "https://www.lipka.cz/audio/vrabecd.mp3" },
+      { name: "šoupálek krátkoprstý", audio_url: "https://www.lipka.cz/audio/soupalekk.mp3" },
+      { name: "sýkora modřinka",      audio_url: "https://www.lipka.cz/audio/sykoram.mp3" },
+      { name: "špaček obecný",        audio_url: "https://www.lipka.cz/audio/spaceko.mp3" },
+      { name: "sýkora koňadra",       audio_url: "https://www.lipka.cz/audio/sykorak.mp3" },
+      { name: "stehlík obecný",       audio_url: "https://www.lipka.cz/audio/stehliko.mp3" },
+      { name: "střízlík obecný",      audio_url: "https://www.lipka.cz/audio/strizliko.mp3" },
+      { name: "sojka obecná",         audio_url: "https://www.lipka.cz/audio/sojkao.mp3" },
+      { name: "strakapoud velký",     audio_url: "https://www.lipka.cz/audio/strakapoudv.mp3" },
+      { name: "sýkora babka",         audio_url: "https://www.lipka.cz/audio/sykorab.mp3" },
+      { name: "puštík obecný",        audio_url: "https://www.lipka.cz/audio/pustiko.mp3" },
+      { name: "rehek domácí",         audio_url: "https://www.lipka.cz/audio/rehekd.mp3" },
+      { name: "pěnkava obecná",       audio_url: "https://www.lipka.cz/audio/penkavao.mp3" },
+      { name: "pěnice černohlavá",    audio_url: "https://www.lipka.cz/audio/penicec.mp3" },
+      { name: "kukačka obecná",       audio_url: "https://www.lipka.cz/audio/kukackao.mp3" },
+      { name: "kos černý",            audio_url: "https://www.lipka.cz/audio/kosc.mp3" },
+      { name: "lejsek šedý",          audio_url: "https://www.lipka.cz/audio/lejseks.mp3" },
+      { name: "krutihlav obecný",     audio_url: "https://www.lipka.cz/audio/krutihlavo.mp3" },
+      { name: "kachna indický běžec", audio_url: "https://www.lipka.cz/audio/indickyb.mp3" },
+      { name: "hrdlička zahradní",    audio_url: "https://www.lipka.cz/audio/hrdlickaz.mp3" },
+      { name: "jiřička obecná",       audio_url: "https://www.lipka.cz/audio/jirickao.mp3" },
+      { name: "kachna divoká",        audio_url: "https://www.lipka.cz/audio/kachnadiv.mp3" },
+      { name: "hýl obecný",           audio_url: "https://www.lipka.cz/audio/hylo.mp3" },
+      { name: "drozd kvíčala",        audio_url: "https://www.lipka.cz/audio/drozdk.mp3" },
+      { name: "drozd zpěvný",         audio_url: "https://www.lipka.cz/audio/drozdz.mp3" },
+      { name: "dlask tlustozobý",     audio_url: "https://www.lipka.cz/audio/dlaskt.mp3" },
+      { name: "červenka obecná",      audio_url: "https://www.lipka.cz/audio/cervenkao.mp3" },
+      { name: "brkoslav severní",     audio_url: "https://www.lipka.cz/audio/brkoslavs.mp3" },
+      { name: "budníček menší",       audio_url: "https://www.lipka.cz/audio/budnicekm.mp3" },
+      { name: "brhlík lesní",         audio_url: "https://www.lipka.cz/audio/brhlikl.mp3" },
+      { name: "vlaštovka obecná",     audio_url: "https://www.lipka.cz/audio/vlastovkao.mp3" },
+      { name: "rehek zahradní",       audio_url: "https://www.lipka.cz/audio/rehekz.mp3" },
+      { name: "mlynařík dlouhoocasý", audio_url: "https://www.lipka.cz/audio/mlynarikd.mp3" },
+      { name: "holub hřivnáč",        audio_url: "https://www.lipka.cz/audio/holubh.mp3" },
+    ];
+
+    let order = [];
+    let current = 0;
+    let correct = 0;
+    let answered = false;
+    let gameSize = 0; // 0 = all
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function startQuiz() {
+      const count = gameSize || birds.length;
+      order = shuffle([...Array(birds.length).keys()]).slice(0, count);
+      current = 0;
+      correct = 0;
+      answered = false;
+      document.getElementById("finished").style.display = "none";
+      document.getElementById("play-area").style.display = "flex";
+      document.getElementById("options").style.display = "grid";
+      document.getElementById("score-board").style.display = "";
+      showCard();
+    }
+
+    function showCard() {
+      answered = false;
+      const idx = order[current];
+      const bird = birds[idx];
+
+      // progress
+      const pct = (current / order.length) * 100;
+      document.getElementById("progress-bar").style.width = pct + "%";
+      document.getElementById("progress-text").textContent =
+        `Karta ${current + 1} / ${order.length}`;
+
+      // audio
+      const audio = document.getElementById("audio");
+      audio.src = bird.audio_url;
+      audio.load();
+
+      // play button
+      const playBtn = document.getElementById("play-btn");
+      playBtn.textContent = "▶";
+      playBtn.classList.remove("playing");
+
+      // options: 1 correct + (CHOICES-1) random wrong
+      const others = shuffle(birds
+        .map((b, i) => i)
+        .filter(i => i !== idx)
+      ).slice(0, CHOICES - 1);
+      const choices = shuffle([idx, ...others]);
+
+      const optDiv = document.getElementById("options");
+      optDiv.innerHTML = "";
+      choices.forEach(i => {
+        const btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.textContent = birds[i].name;
+        btn.dataset.idx = i;
+        btn.addEventListener("click", () => handleAnswer(btn, idx));
+        optDiv.appendChild(btn);
+      });
+
+      // reset feedback & next
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("feedback").className = "";
+      document.getElementById("next-btn").style.display = "none";
+      updateScore();
+
+      // autoplay
+      audio.play().catch(() => {});
+      playBtn.textContent = "⏸";
+      playBtn.classList.add("playing");
+    }
+
+    function handleAnswer(btn, correctIdx) {
+      if (answered) return;
+      answered = true;
+
+      const chosen = parseInt(btn.dataset.idx);
+      const isCorrect = chosen === correctIdx;
+      if (isCorrect) correct++;
+
+      // colour all buttons
+      document.querySelectorAll(".opt-btn").forEach(b => {
+        b.disabled = true;
+        if (parseInt(b.dataset.idx) === correctIdx) b.classList.add(isCorrect ? "correct" : "reveal");
+        else if (b === btn && !isCorrect)           b.classList.add("wrong");
+      });
+
+      const fb = document.getElementById("feedback");
+      if (isCorrect) {
+        fb.textContent = "Správně! ✓";
+        fb.className = "correct";
+      } else {
+        fb.textContent = `Špatně – byl to ${birds[correctIdx].name}`;
+        fb.className = "wrong";
+      }
+
+      updateScore();
+      document.getElementById("next-btn").style.display = "block";
+    }
+
+    function updateScore() {
+      document.getElementById("score-board").textContent =
+        `Skóre: ${correct} / ${current + (answered ? 1 : 0)}`;
+    }
+
+    // play / pause button
+    document.getElementById("play-btn").addEventListener("click", () => {
+      const audio = document.getElementById("audio");
+      const btn = document.getElementById("play-btn");
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = "⏸";
+        btn.classList.add("playing");
+      } else {
+        audio.pause();
+        audio.currentTime = 0;
+        btn.textContent = "▶";
+        btn.classList.remove("playing");
+      }
+    });
+
+    document.getElementById("audio").addEventListener("ended", () => {
+      const btn = document.getElementById("play-btn");
+      btn.textContent = "▶";
+      btn.classList.remove("playing");
+    });
+
+    // next button
+    document.getElementById("next-btn").addEventListener("click", () => {
+      document.getElementById("audio").pause();
+      current++;
+      if (current >= order.length) {
+        showFinished();
+      } else {
+        showCard();
+      }
+    });
+
+    // restart
+    document.getElementById("restart-btn").addEventListener("click", startQuiz);
+
+    // size selector
+    document.querySelectorAll(".size-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        gameSize = parseInt(btn.dataset.size);
+        startQuiz();
+      });
+    });
+
+    function showFinished() {
+      document.getElementById("play-area").style.display = "none";
+      document.getElementById("options").style.display = "none";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("score-board").style.display = "none";
+      document.getElementById("progress-bar").style.width = "100%";
+      document.getElementById("progress-text").textContent = "Hotovo!";
+
+      const pct = Math.round((correct / order.length) * 100);
+      document.getElementById("final-score").textContent =
+        `${correct} z ${order.length} správně (${pct} %)`;
+      document.getElementById("finished").style.display = "flex";
+    }
+
+    startQuiz();
+  </script>
+</body>
+</html>
