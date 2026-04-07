@@ -21,7 +21,7 @@ Skript [pipeline.py](https://github.com/trnkatomas/trnkatomas.github.io/tree/mai
 3. **Extrakce dat** – z HTML vytáhne název ptáka a přímý odkaz na MP3.
 4. **Generování manifestu** – výsledky zapíše do `manifest.json`, který pak používá kvíz.
 
-Výstupem je buď online verze odkazující přímo na lipka.cz (viz níže), nebo offline verze se staženými soubory. Offline kvíz je v [index_local.html](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/index_local.html){target="_blank"}; přímé odkazy na všechny nahrávky jsou přehledně v [audio_links.md](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/audio_links.md){target="_blank"}.
+Výstupem je buď online verze odkazující přímo na lipka.cz (viz níže), nebo offline verze se staženými soubory. Offline kvíz je v [index_local.html](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/index_local.html){target="_blank"}; přímé odkazy na všechny nahrávky jsou přehledně v [audio_links.md](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/_audio_links.md){target="_blank"}.
 
 ## Kvíz
 
