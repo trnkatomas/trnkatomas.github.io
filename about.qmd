@@ -1,0 +1,7 @@
+---
+title: "About"
+---
+
+A place for short posts on things I find interesting.
+
+You can find my code on [GitHub](https://github.com/trnkatomas).

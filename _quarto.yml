@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  description: "A blog by Tomas Trnka"
+  site-url: https://trnkatomas.github.io
+  title: "trnkatomas"
+  navbar:
+    left:
+      - text: "Posts"
+        href: index.qmd
+    right:
+      - text: "About"
+        href: about.qmd
+      - icon: github
+        href: https://github.com/trnkatomas
+  favicon: favicon.ico
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
+
+
+
