@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Reviewer Overlap Network</title>
+    <!-- Load Vis-Network from CDN -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style type="text/css">
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f8f9fa; }
+        #network-container {
+            width: 100vw;
+            height: 100vh;
+            border: 1px solid lightgray;
+            background-color: #ffffff;
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+        h2 { margin-top: 0; font-size: 18px; color: #333; }
+        p { font-size: 13px; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <h2>Book Intersections</h2>
+    <p>Nodes are books. Edges represent shared reviewers.</p>
+    <p><strong>Thickness</strong> indicates the volume of overlapping users.</p>
+</div>
+
+<div id="network-container"></div>
+
+<script type="text/javascript">
+    
+    // 1. Configuration Options
+    const options = {
+        nodes: {
+            shape: 'dot',
+            size: 20,
+            font: { size: 14, color: '#333' },
+            borderWidth: 2,
+            shadow: true
+        },
+        edges: {
+            width: 2,
+            color: {
+                color: '#666666',
+                highlight: '#ff0000',
+                hover: '#222222',
+                opacity: 0.6
+            },
+            scaling: {
+                min: 1,
+                max: 15, // Max thickness of the lines
+                label: false
+            },
+            smooth: {
+                type: 'continuous' // Makes lines slightly curved and organic
+            }
+        },
+        physics: {
+            enabled: true,
+            barnesHut: {
+                gravitationalConstant: -2000,
+                centralGravity: 0.3,
+                springLength: 200, // Distance between nodes
+                springConstant: 0.04
+            }
+        },
+        interaction: {
+            hover: true,
+            tooltipDelay: 200
+        }
+    };
+
+    // 4. Initialize the Network
+    fetch('book_overlap_graph.json')
+    .then(response => response.json())
+    .then(data => {
+        const nodes = new vis.DataSet(data.nodes);
+        const edges = new vis.DataSet(data.edges);
+        const networkData = { nodes: nodes, edges: edges };
+        const container = document.getElementById('network-container');
+        const network = new vis.Network(container, networkData, options);
+
+        network.on("selectNode", function (params) {
+            const selectedNodeId = params.nodes[0];
+            const neighbors = network.getConnectedNodes(selectedNodeId);
+            
+            // Prepare a list of all nodes to update
+            const allNodes = nodes.get();
+            const updateArray = allNodes.map(node => {
+                if (node.id === selectedNodeId) {
+                    // Highlight the selected node
+                    return { id: node.id, color: { background: '#ff0000', border: '#800000' } };
+                } else if (neighbors.includes(node.id)) {
+                    // Highlight the neighbors in a different color
+                    return { id: node.id, color: { background: '#ffa500', border: '#cc8400' } };
+                } else {
+                    // Fade out the rest
+                    return { id: node.id, color: { background: '#e0e0e0', border: '#d0d0d0' }, opacity: 0.3 };
+                }
+            });
+
+            // Apply updates to the DataSet
+            nodes.update(updateArray);
+        });
+
+        // Reset colors when the user clicks on empty space (deselects)
+        network.on("deselectNode", function (params) {
+            const allNodes = nodes.get();
+            const resetArray = allNodes.map(node => {
+                return { 
+                    id: node.id, 
+                    color: undefined, // Resets to original options/styles
+                    opacity: 1 
+                };
+            });
+            nodes.update(resetArray);
+        });
+    });
+</script>
+
+</body>
+</html>
