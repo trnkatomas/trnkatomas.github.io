@@ -5,6 +5,8 @@ project:
 website:
   description: "A blog by Tomas Trnka"
   site-url: https://trnkatomas.github.io
+  open-graph: true
+  twitter-card: true
   title: "trnkatomas"
   navbar:
     left:

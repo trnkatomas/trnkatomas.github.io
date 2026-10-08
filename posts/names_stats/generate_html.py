@@ -7,9 +7,9 @@ from pathlib import Path
 YEARS = [2016, 2017, 2018, 2019, 2022, 2023, 2024]
 
 
-def read_data():
+def read_data(csv_path):
     data = {}
-    with open('names.csv', encoding='utf-8') as f:
+    with open(csv_path, encoding='utf-8') as f:
         for r in csv.DictReader(f):
             y, reg, g = int(r['year']), r['region'], r['gender']
             try:
@@ -25,8 +25,9 @@ def read_data():
     return data
 
 
-def main():
-    data = read_data()
+def build(csv_path='names.csv', out_path='names_chart.html'):
+    """Read the unified names CSV and write the self-contained chart page."""
+    data = read_data(csv_path)
     all_regions = sorted({r for y in data for r in data[y]})
     regions = ['Česko'] + [r for r in all_regions if r != 'Česko']
 
@@ -41,8 +42,8 @@ def main():
     region_opts = '\n'.join(f'      <option value="{r}">{r}</option>' for r in regions)
 
     html = HTML_TEMPLATE.replace('%%DATA%%', data_json).replace('%%REGIONS%%', region_opts)
-    Path('index.html').write_text(html, encoding='utf-8')
-    print(f'Generated index.html  ({len(html)//1024} KB)')
+    Path(out_path).write_text(html, encoding='utf-8')
+    print(f'Wrote {out_path}  ({len(html)//1024} KB)')
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +131,7 @@ select{padding:5px 8px;border:1px solid #e2e8f0;
   <div class="search-wrap">
     <input id="sq" type="search" placeholder="Hledat jméno…" oninput="onSearch(this.value)" autocomplete="off">
   </div>
-  <span class="tb-note" id="nt">⚠ 2016–2019: kumulativní data &nbsp;·&nbsp; 2022–2024: roční narozených</span>
+  <span class="tb-note" id="nt">2016–2019: narození v lednu &nbsp;·&nbsp; 2022–2024: celý rok</span>
 </div>
 
 <div id="wrap"><svg id="viz"></svg></div>
@@ -296,4 +297,4 @@ render();
 """
 
 if __name__ == '__main__':
-    main()
+    build()
