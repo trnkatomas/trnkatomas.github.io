@@ -23,10 +23,17 @@ Skript [pipeline.py](https://github.com/trnkatomas/trnkatomas.github.io/tree/mai
 
 Výstupem je buď online verze odkazující přímo na lipka.cz (viz níže), nebo offline verze se staženými soubory. Offline kvíz je v [index_local.html](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/index_local.html){target="_blank"}; přímé odkazy na všechny nahrávky jsou přehledně v [audio_links.md](https://github.com/trnkatomas/trnkatomas.github.io/tree/main/posts/birds_flashcards/_audio_links.md){target="_blank"}.
 
-## Kvíz
+## Kvíz a trénink
+
+Aplikace má dva režimy, mezi kterými se přepíná nahoře:
+
+- **Test** – přehraje se náhodný hlas a z nabídky čtyř ptáků vybereš toho správného. Počet otázek můžeš zkrátit na 5, 10 nebo 20.
+- **Trénink** – nejdřív si hlasy poslechneš a naučíš se je. Do vyhledávacího pole začni psát jméno ptáka (diakritika nevadí, „zluna“ najde „žluna“), nebo pole rozklikni a vyber ptáka z celého seznamu. Hlas se hned přehraje.
+
+Pod tlačítkem přehrávání je časová osa. Nezobrazuje žádné časy, jen ukazuje, v jaké části nahrávky právě jsi – na začátku, uprostřed nebo na konci. Kliknutím nebo tažením po ní se dá v nahrávce posouvat.
 
 Nahrávky pochází přímo ze serverů [lipka.cz](https://www.lipka.cz) – zvuk se načte při prvním přehrání každé karty.
 
 ```{=html}
-<iframe src="index_lipka.html" width="100%" height="700px" style="border:none; border-radius:1rem;"></iframe>
+<iframe src="index_lipka.html" width="100%" height="780px" style="border:none; border-radius:1rem;"></iframe>
 ```

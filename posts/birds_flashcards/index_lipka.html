@@ -197,12 +197,144 @@
       text-align: center;
     }
     #attribution a { color: #4a7c4a; }
+
+    /* mode switch (Test / Trénink) */
+    #mode-selector {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      background: #e3ede3;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+    }
+    .mode-btn {
+      padding: 0.4rem 1.3rem;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: #4a7c4a;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mode-btn.active { background: #4a7c4a; color: white; }
+
+    body.mode-train .quiz-only { display: none !important; }
+    body:not(.mode-train) .train-only { display: none !important; }
+
+    /* time axis: shows position in the recording, deliberately without any time labels */
+    #timeline {
+      width: 100%;
+      max-width: 320px;
+      padding: 0 8px;
+      cursor: pointer;
+      touch-action: none;
+      outline: none;
+    }
+    #timeline.disabled { opacity: 0.35; pointer-events: none; }
+    #tl-track { position: relative; height: 28px; }
+    #tl-track::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 6px; margin-top: -3px;
+      border-radius: 999px;
+      background: #e8f0e8;
+    }
+    #tl-fill {
+      position: absolute;
+      left: 0; top: 50%;
+      width: 0; height: 6px; margin-top: -3px;
+      border-radius: 999px;
+      background: #4a7c4a;
+    }
+    #tl-thumb {
+      position: absolute;
+      left: 0; top: 50%;
+      width: 16px; height: 16px; margin: -8px 0 0 -8px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #4a7c4a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    #timeline:focus-visible #tl-thumb { outline: 2px solid #2a8a5a; outline-offset: 2px; }
+
+    #play-btn:disabled {
+      background: #b8ccb8;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    /* train mode */
+    #train-title {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #2a4a2a;
+      min-height: 1.6em;
+    }
+
+    /* bird picker: typeahead input + dropdown */
+    #bird-picker { position: relative; }
+    #bird-picker::after {
+      content: "▾";
+      position: absolute;
+      right: 1rem;
+      top: 0.65rem;
+      font-size: 1.25rem;
+      color: #7a9a7a;
+      pointer-events: none;
+    }
+    #bird-input {
+      width: 100%;
+      padding: 0.75rem 2.4rem 0.75rem 1rem;
+      border-radius: 0.75rem;
+      border: 2px solid #d8e8d8;
+      background: #f8fbf8;
+      font: inherit;
+      font-size: 1rem;
+      color: inherit;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    #bird-input:focus { border-color: #4a7c4a; background: white; }
+    #bird-menu {
+      position: absolute;
+      z-index: 10;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      max-height: 240px;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0.25rem;
+      background: white;
+      border: 2px solid #4a7c4a;
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    #bird-menu[hidden] { display: none; }
+    #bird-menu li {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    #bird-menu li.hi { background: #e3ede3; }
+    #bird-menu li.sel { font-weight: 700; color: #2a8a5a; }
+    #bird-menu li.empty { color: #7a9a7a; cursor: default; }
   </style>
 </head>
 <body>
   <h1>Hlasy ptáků</h1>
 
-  <div id="size-selector">
+  <div id="mode-selector">
+    <button class="mode-btn active" data-mode="quiz">Test</button>
+    <button class="mode-btn" data-mode="train">Trénink</button>
+  </div>
+
+  <div id="size-selector" class="quiz-only">
     <button class="size-btn active" data-size="0">Vše</button>
     <button class="size-btn" data-size="5">5</button>
     <button class="size-btn" data-size="10">10</button>
@@ -210,21 +342,34 @@
   </div>
 
   <div id="card">
-    <div id="progress-bar-wrap"><div id="progress-bar" style="width:0%"></div></div>
-    <div id="progress-text">Karta 1 / 38</div>
+    <div id="bird-picker" class="train-only">
+      <input id="bird-input" type="text" placeholder="Začni psát nebo vyber ze seznamu…"
+             autocomplete="off" autocapitalize="off" spellcheck="false"
+             role="combobox" aria-expanded="false" aria-controls="bird-menu" aria-autocomplete="list">
+      <ul id="bird-menu" role="listbox" hidden></ul>
+    </div>
+
+    <div id="train-title" class="train-only">Vyber ptáka ze seznamu</div>
+
+    <div id="progress-bar-wrap" class="quiz-only"><div id="progress-bar" style="width:0%"></div></div>
+    <div id="progress-text" class="quiz-only">Karta 1 / 38</div>
 
     <div id="play-area">
       <button id="play-btn" title="Přehrát hlas">▶</button>
+      <div id="timeline" class="disabled" role="slider" tabindex="0"
+           aria-label="Pozice v nahrávce" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="tl-track"><div id="tl-fill"></div><div id="tl-thumb"></div></div>
+      </div>
       <span id="play-label">Přehraj hlas a uhádni ptáka</span>
     </div>
 
-    <div id="options"></div>
+    <div id="options" class="quiz-only"></div>
 
-    <div id="feedback"></div>
-    <button id="next-btn">Další →</button>
-    <div id="score-board">Skóre: 0 / 0</div>
+    <div id="feedback" class="quiz-only"></div>
+    <button id="next-btn" class="quiz-only">Další →</button>
+    <div id="score-board" class="quiz-only">Skóre: 0 / 0</div>
 
-    <div id="finished">
+    <div id="finished" class="quiz-only">
       <h2>🎉 Hotovo!</h2>
       <p id="final-score"></p>
       <button id="restart-btn">Hrát znovu</button>
@@ -287,6 +432,8 @@
     let answered = false;
     let gameSize = 0; // 0 = all
 
+    function audioSrc(bird) { return bird.audio_url; }
+
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -320,14 +467,8 @@
         `Karta ${current + 1} / ${order.length}`;
 
       // audio
-      const audio = document.getElementById("audio");
-      audio.src = bird.audio_url;
-      audio.load();
-
-      // play button
-      const playBtn = document.getElementById("play-btn");
-      playBtn.textContent = "▶";
-      playBtn.classList.remove("playing");
+      loadAudio(audioSrc(bird));
+      playBtn.disabled = false;
 
       // options: 1 correct + (CHOICES-1) random wrong
       const others = shuffle(birds
@@ -354,9 +495,7 @@
       updateScore();
 
       // autoplay
-      audio.play().catch(() => {});
-      playBtn.textContent = "⏸";
-      playBtn.classList.add("playing");
+      player.play().catch(() => {});
     }
 
     function handleAnswer(btn, correctIdx) {
@@ -392,27 +531,236 @@
         `Skóre: ${correct} / ${current + (answered ? 1 : 0)}`;
     }
 
-    // play / pause button
-    document.getElementById("play-btn").addEventListener("click", () => {
-      const audio = document.getElementById("audio");
-      const btn = document.getElementById("play-btn");
-      if (audio.paused) {
-        audio.play();
-        btn.textContent = "⏸";
-        btn.classList.add("playing");
-      } else {
-        audio.pause();
-        audio.currentTime = 0;
-        btn.textContent = "▶";
-        btn.classList.remove("playing");
-      }
+    // ---------- player + time axis ----------
+    const player = document.getElementById("audio");
+    const playBtn = document.getElementById("play-btn");
+    const timeline = document.getElementById("timeline");
+    const tlTrack = document.getElementById("tl-track");
+    const tlFill = document.getElementById("tl-fill");
+    const tlThumb = document.getElementById("tl-thumb");
+    let rafId = null;
+
+    function hasDuration() {
+      return isFinite(player.duration) && player.duration > 0;
+    }
+
+    function renderTimeline() {
+      const f = hasDuration() ? Math.min(player.currentTime / player.duration, 1) : 0;
+      const pct = f * 100;
+      tlFill.style.width = pct + "%";
+      tlThumb.style.left = pct + "%";
+      timeline.setAttribute("aria-valuenow", Math.round(pct));
+      timeline.classList.toggle("disabled", !hasDuration());
+    }
+
+    function setPlayingUI(playing) {
+      playBtn.textContent = playing ? "⏸" : "▶";
+      playBtn.classList.toggle("playing", playing);
+    }
+
+    function loadAudio(src) {
+      player.src = src;
+      player.load();
+      setPlayingUI(false);
+      renderTimeline();
+    }
+
+    function tick() {
+      renderTimeline();
+      rafId = requestAnimationFrame(tick);
+    }
+    function stopTick() {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      renderTimeline();
+    }
+
+    player.addEventListener("play", () => { setPlayingUI(true); if (rafId === null) tick(); });
+    player.addEventListener("pause", () => { setPlayingUI(false); stopTick(); });
+    player.addEventListener("ended", () => { setPlayingUI(false); stopTick(); });
+    ["loadedmetadata", "durationchange", "seeked", "timeupdate"].forEach(ev =>
+      player.addEventListener(ev, renderTimeline));
+
+    // play / pause (pausing keeps the position; the axis shows where we are)
+    playBtn.addEventListener("click", () => {
+      if (!player.getAttribute("src")) return;
+      if (player.paused) player.play().catch(() => {});
+      else player.pause();
     });
 
-    document.getElementById("audio").addEventListener("ended", () => {
-      const btn = document.getElementById("play-btn");
-      btn.textContent = "▶";
-      btn.classList.remove("playing");
+    // seek by clicking / dragging the axis, or with arrow keys
+    let scrubbing = false;
+    function seekFromPointer(e) {
+      if (!hasDuration()) return;
+      const r = tlTrack.getBoundingClientRect();
+      const f = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
+      player.currentTime = f * player.duration;
+      renderTimeline();
+    }
+    timeline.addEventListener("pointerdown", e => {
+      scrubbing = true;
+      timeline.setPointerCapture(e.pointerId);
+      seekFromPointer(e);
     });
+    timeline.addEventListener("pointermove", e => { if (scrubbing) seekFromPointer(e); });
+    ["pointerup", "pointercancel"].forEach(ev =>
+      timeline.addEventListener(ev, () => { scrubbing = false; }));
+    timeline.addEventListener("keydown", e => {
+      if (!hasDuration()) return;
+      const step = player.duration * 0.05;
+      if (e.key === "ArrowRight") player.currentTime = Math.min(player.duration, player.currentTime + step);
+      else if (e.key === "ArrowLeft") player.currentTime = Math.max(0, player.currentTime - step);
+      else return;
+      e.preventDefault();
+      renderTimeline();
+    });
+
+    // ---------- modes: quiz (Test) / train (Trénink) ----------
+    let mode = "quiz";
+    let trainIdx = null;
+
+    // bird picker: typeahead input + dropdown (accent-insensitive, so "zluna" finds "žluna")
+    const birdInput = document.getElementById("bird-input");
+    const birdMenu = document.getElementById("bird-menu");
+    let sortedIdx = [];
+    let menuItems = [];
+    let hi = -1;
+
+    function norm(s) {
+      return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function buildBirdList() {
+      sortedIdx = birds.map((b, i) => i)
+        .sort((a, b) => birds[a].name.localeCompare(birds[b].name, "cs"));
+    }
+
+    function setHi(pos, scroll) {
+      hi = pos;
+      [...birdMenu.children].forEach((li, p) => li.classList.toggle("hi", p === pos));
+      if (scroll && birdMenu.children[pos]) birdMenu.children[pos].scrollIntoView({ block: "nearest" });
+    }
+
+    function renderMenu() {
+      const q = norm(birdInput.value.trim());
+      menuItems = sortedIdx.filter(i => norm(birds[i].name).includes(q));
+      if (q) {
+        // names starting with the query first (sort is stable, so alphabetical order is kept)
+        menuItems.sort((a, b) =>
+          norm(birds[a].name).startsWith(q) === norm(birds[b].name).startsWith(q) ? 0
+            : norm(birds[a].name).startsWith(q) ? -1 : 1);
+      }
+      birdMenu.innerHTML = "";
+      menuItems.forEach((i, pos) => {
+        const li = document.createElement("li");
+        li.setAttribute("role", "option");
+        li.textContent = birds[i].name;
+        li.dataset.pos = pos;
+        if (i === trainIdx) li.classList.add("sel");
+        birdMenu.appendChild(li);
+      });
+      if (!menuItems.length) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "Nic nenalezeno";
+        birdMenu.appendChild(li);
+      }
+      // typing: highlight best match; plain dropdown: highlight the current bird
+      setHi(q ? (menuItems.length ? 0 : -1) : menuItems.indexOf(trainIdx), true);
+    }
+
+    function openMenu() {
+      renderMenu();
+      birdMenu.hidden = false;
+      birdInput.setAttribute("aria-expanded", "true");
+    }
+
+    function closeMenu() {
+      birdMenu.hidden = true;
+      birdInput.setAttribute("aria-expanded", "false");
+    }
+
+    function chooseBird(idx) {
+      selectBird(idx, true);
+      birdInput.value = "";
+      closeMenu();
+      birdInput.blur();
+    }
+
+    birdInput.addEventListener("focus", openMenu);
+    birdInput.addEventListener("click", () => { if (birdMenu.hidden) openMenu(); });
+    birdInput.addEventListener("input", openMenu);
+    birdInput.addEventListener("blur", () => { closeMenu(); birdInput.value = ""; });
+    birdInput.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (birdMenu.hidden) { openMenu(); return; }
+        if (!menuItems.length) return;
+        const step = e.key === "ArrowDown" ? 1 : -1;
+        setHi((hi + step + menuItems.length) % menuItems.length, true);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (!birdMenu.hidden && hi >= 0 && menuItems[hi] !== undefined) chooseBird(menuItems[hi]);
+      } else if (e.key === "Escape") {
+        closeMenu();
+      }
+    });
+    // keep focus in the input while using the menu (also while dragging its scrollbar)
+    birdMenu.addEventListener("mousedown", e => e.preventDefault());
+    birdMenu.addEventListener("click", e => {
+      const li = e.target.closest("li[data-pos]");
+      if (li) chooseBird(menuItems[Number(li.dataset.pos)]);
+    });
+    birdMenu.addEventListener("mousemove", e => {
+      const li = e.target.closest("li[data-pos]");
+      if (li && Number(li.dataset.pos) !== hi) setHi(Number(li.dataset.pos), false);
+    });
+
+    function selectBird(idx, autoplay) {
+      const sameBird = idx !== null && idx === trainIdx;
+      trainIdx = idx;
+      const title = document.getElementById("train-title");
+
+      if (idx === null) {
+        title.textContent = "Vyber ptáka ze seznamu";
+        playBtn.disabled = true;
+        player.removeAttribute("src");
+        player.load();
+        setPlayingUI(false);
+        renderTimeline();
+        return;
+      }
+
+      title.textContent = birds[idx].name;
+      playBtn.disabled = false;
+      if (sameBird && player.getAttribute("src")) {
+        player.currentTime = 0;
+      } else {
+        loadAudio(audioSrc(birds[idx]));
+      }
+      if (autoplay) player.play().catch(() => {});
+    }
+
+    function setMode(m) {
+      mode = m;
+      player.pause();
+      document.body.classList.toggle("mode-train", m === "train");
+      document.querySelectorAll(".mode-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.mode === m));
+
+      if (m === "train") {
+        document.getElementById("play-area").style.display = "flex";
+        document.getElementById("play-label").textContent = "Přehraj hlas";
+        selectBird(trainIdx, false);
+      } else {
+        document.getElementById("play-label").textContent = "Přehraj hlas a uhádni ptáka";
+        playBtn.disabled = false;
+        startQuiz();
+      }
+    }
+
+    document.querySelectorAll(".mode-btn").forEach(btn =>
+      btn.addEventListener("click", () => { if (btn.dataset.mode !== mode) setMode(btn.dataset.mode); }));
 
     // next button
     document.getElementById("next-btn").addEventListener("click", () => {
@@ -453,6 +801,7 @@
       document.getElementById("finished").style.display = "flex";
     }
 
+    buildBirdList();
     startQuiz();
   </script>
 </body>
